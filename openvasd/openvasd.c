@@ -443,17 +443,17 @@ handler (openvasd_connector_t conn, openvasd_req_method_t method, gchar *path,
     g_string_append (url, path);
 
   // Set URL
-  g_debug ("%s: URL: %s", __func__, url->str);
+  g_warning ("%s: URL: %s", __func__, url->str);
   if (curl_easy_setopt (curl, CURLOPT_URL, url->str) != CURLE_OK)
     {
+      g_warning ("%s: Not possible to set the URL: %s", __func__, url->str);
       g_string_free (url, TRUE);
-      g_warning ("%s: Not possible to set the URL", __func__);
       curl_easy_cleanup (curl);
       *err = g_strdup ("{\"error\": \"Not possible to set URL\"}");
       return NULL;
     }
-  g_string_free (url, TRUE);
 
+  g_string_free (url, TRUE);
   // Server verification
   if (conn->ca_cert != NULL)
     {
@@ -466,7 +466,7 @@ handler (openvasd_connector_t conn, openvasd_req_method_t method, gchar *path,
       curl_easy_setopt (curl, CURLOPT_SSL_VERIFYHOST, 1L);
       if (curl_easy_setopt (curl, CURLOPT_CAINFO_BLOB, &blob) != CURLE_OK)
         {
-          g_warning ("%s: Not possible to set the CA certificate", __func__);
+          g_warning ("%s: Not possible to set the CA certificate: %s ", __func__, conn->ca_cert);
           curl_easy_cleanup (curl);
           *err =
             g_strdup ("{\"error\": \"Not possible to set CA certificate\"}");
