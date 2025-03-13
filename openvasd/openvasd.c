@@ -1487,6 +1487,10 @@ openvasd_delete_scan (openvasd_connector_t conn)
   return response;
 }
 
+static void openvasd_warn_conn_failed(const char *func, openvasd_connector_t conn, const char *endpoint) {
+        g_warning ("%s: Failed to call: %s:%i/%s", func, conn->host, conn->port, endpoint);
+}
+
 openvasd_resp_t
 openvasd_get_health_alive (openvasd_connector_t conn)
 {
@@ -1494,11 +1498,12 @@ openvasd_get_health_alive (openvasd_connector_t conn)
   gchar *err = NULL;
   CURL *hnd = NULL;
   struct curl_slist *customheader = NULL;
-
+  char *endpoint =  "/health/alive";
   response = g_malloc0 (sizeof (struct openvasd_response));
 
   customheader = init_customheader (conn->apikey, FALSE);
-  hnd = handler (conn, GET, "/health/alive", NULL, customheader, &err);
+  // TODO remove duplication
+  hnd = handler (conn, GET, endpoint, NULL, customheader, &err);
   if (hnd == NULL)
     {
       curl_slist_free_all (customheader);
@@ -1515,7 +1520,7 @@ openvasd_get_health_alive (openvasd_connector_t conn)
     {
       response->body =
         g_strdup ("{\"error\": \"Not possible to get health information.\"}");
-      g_warning ("%s: Not possible to get health information", __func__);
+      openvasd_warn_conn_failed(__func__, conn, endpoint);
     }
 
   openvasd_reset_vt_stream (conn);
@@ -1529,11 +1534,12 @@ openvasd_get_health_ready (openvasd_connector_t conn)
   gchar *err = NULL;
   CURL *hnd = NULL;
   struct curl_slist *customheader = NULL;
+  char *endpoint =  "/health/ready";
 
   response = g_malloc0 (sizeof (struct openvasd_response));
 
   customheader = init_customheader (conn->apikey, FALSE);
-  hnd = handler (conn, GET, "/health/ready", NULL, customheader, &err);
+  hnd = handler (conn, GET, endpoint, NULL, customheader, &err);
   if (hnd == NULL)
     {
       response->code = RESP_CODE_ERR;
@@ -1549,7 +1555,7 @@ openvasd_get_health_ready (openvasd_connector_t conn)
     {
       response->body =
         g_strdup ("{\"error\": \"Not possible to get health information.\"}");
-      g_warning ("%s: Not possible to get health information", __func__);
+      openvasd_warn_conn_failed(__func__, conn, endpoint);
     }
 
   openvasd_reset_vt_stream (conn);
